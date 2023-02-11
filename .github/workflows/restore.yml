@@ -1,0 +1,36 @@
+name: Restore
+
+on:
+  workflow_dispatch:
+    inputs:
+      NEW_DATABASE_URI:
+        type: string
+        required: false
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [14.x]
+
+    env:
+      NEW_DATABASE_URI: ${{ github.event.inputs.NEW_DATABASE_URI }}
+      ACCESS_KEY_ID: ${{ secrets.ACCESS_KEY_ID }}
+      SECRET_ACCESS_KEY: ${{ secrets.SECRET_ACCESS_KEY }}
+      URI: ${{ secrets.URI }}
+      BACKUP_NAME: ${{ vars.BACKUP_NAME }}
+      BUCKET: ${{ vars.BUCKET }}
+
+    steps:
+      - name: Checkout Code  
+        uses: actions/checkout@v2
+
+      - name: Install mongo-tools
+        run:  sudo wget https://fastdl.mongodb.org/tools/db/mongodb-database-tools-debian92-x86_64-100.3.1.deb && sudo apt install ./mongodb-database-tools-*.deb
+
+      - name: Install node.js
+        run: npm ci
+
+      - name: Restore database
+        run: node restore.js
